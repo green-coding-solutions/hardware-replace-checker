@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Hardware Replacement Calculator</title>
+        <link rel="stylesheet" href="/static/semantic/semantic.min.css">
+
+        <script src="/static/jquery.min.js"></script>
+        <script src="/static/semantic/semantic.min.js"></script>
+        <script src="/static/escharts/echarts.min.js"></script>
+
+
+        <style type="text/css">
+            .main.menu {
+              margin-top: 4em;
+              border-radius: 0;
+              border: none;
+              box-shadow: none;
+              transition:
+                box-shadow 0.5s ease,
+                padding 0.5s ease
+              ;
+            }
+
+            .main.menu .item img.logo {
+              margin-right: 1.5em;
+            }
+
+            .main.menu.fixed {
+              background-color: #FFFFFF;
+              border: 1px solid #DDD;
+              box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.2);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="ui borderless main menu">
+            <div class="ui text container">
+              <div class="header item">
+                <a href="http://www.green-coding.io" target="_blank"><img class="logo" src="/static/logo.webp"></a>
+                Hardware Replacement Calculator
+              </div>
+            </div>
+          </div>
+        <div class="ui container">
+
+            <p>This little script enables you to see when it is worth replacing an old machine with a new one. We have prefilled a few example values. Feel free to adapt to your case. Read the full blog article here <a href="http://green-coding.io/blog/when-to-replace-a-machine">green-coding.io/blog/when-to-replace-a-machine</a></p>The model calculates 15 years into the future, as we don't see any real server run any longer in production.
+            <div class="ui segment">
+                <div class="ui two column very relaxed grid">
+                    <div class="column">
+                        <h2 class="ui header">Old machine</h2>
+
+                        <form class="ui form">
+                            <div class="field">
+                                <label for="old_embodied_carbon">
+                                    Embodied Carbon (kg CO2e):
+                                    <i class="info circle icon old_embodied_carbon_modal_click"></i>
+                                </label>
+                                <input type="number" id="old_embodied_carbon" value=1280>
+                                <div class="ui modal" id="old_embodied_carbon_modal">
+                                    <div class="header">Getting the Embodied Carbon</div>
+                                    <div class="content">
+                                        Getting an exact value for the embodied carbon is not as trivial as one might think. A good source is the data from <a href="" target="_blank">here</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label for="old_utilisation">Average Utilization (%):</label>
+                                <input type="number" id="old_utilisation" value="40">
+                            </div>
+                            <div class="field">
+                                <label for="old_tdp">
+                                    Thermal Design Power or Total Power:
+                                    <i class="info circle icon thermal_modal_click"></i>
+                                </label>
+                                <input type="number" id="old_tdp" value="400">
+                                <div class="ui modal" id="thermal_modal">
+                                    <div class="header">What is this value?</div>
+                                    <div class="content">
+                                        The thermal design power is the energy the CPU is using at 100% utilization (oversimplified). You can get the values from the documentation of your CPU. To get better values you can also add the watt the total machine is using. If you do this please adapt the utilization accordingly. This curves are normally not linear, which we are assuming for the sake of simplicity here. If you want to base any real live decision off this data please modify the code or ask us.
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="field">
+                                <label>
+                                    Grid Intensity of Region for Power (g CO2e/kWh):
+                                    <i class="info circle icon grid_intensity_modal_click"></i>
+                                </label>
+                                <div class="ui selection dropdown">
+                                    <input type="hidden" name="old_grid_intensity" id="old_grid_intensity">
+                                    <div class="text"></div>
+                                    <i class="dropdown icon"></i>
+                                </div>
+                                <div class="ui modal" id="grid_intensity_modal">
+                                    <div class="header">Why can't I add a value here?</div>
+                                    <div class="content">
+                                        Why are you asking me for all these values and here you just give me some crude selection? The answer is quite simple: Grid Intensity is not a static value. It changes over time and region. In Europe for example it is steadily decreasing and projected to get very close to a minimum in a few years. Would we assume static intensity we wouldn't account for this. So we got the data from https://eneroutlook.enerdata.net/forecast-world-co2-intensity-of-electricity-generation.html and added it to our model. We are aware that this is quite corse but it suffices to give to some idea. When you actually base business decisions of this model please edit the source code and apply your grid data to make the model more accurate or ask us.
+                                    </div>
+                                </div>
+
+                            </div>
+                        </form>
+                    </div>
+                    <div class="column">
+                        <h2 class="ui header">New machine</h2>
+
+                        <form class="ui form">
+                            <div class="field">
+                                <label for="new_embodied_carbon">
+                                    Embodied Carbon (kg CO2e):
+                                    <i class="info circle icon old_embodied_carbon_modal_click"></i>
+                                </label>
+                                <input type="number" id="new_embodied_carbon" value="1280">
+                            </div>
+                            <div class="field">
+                                <label for="new_utilisation">Average Utilization (%):</label>
+                                <input type="number" id="new_utilisation" value="40">
+                            </div>
+                            <div class="field">
+                                <label for="new_tdp">
+                                    Thermal Design Power or Total Power:
+                                    <i class="info circle icon thermal_modal_click"></i>
+                                </label>
+                                <input type="number" id="new_tdp" value="200">
+                            </div>
+                            <div class="field">
+                                <label>
+                                    Grid Intensity of Region for Power (g CO2e/kWh):
+                                    <i class="info circle icon grid_intensity_modal_click"></i>
+                                </label>
+                                <div class="ui selection dropdown">
+                                    <input type="hidden" name="new_grid_intensity" id="new_grid_intensity">
+                                    <div class="text"></div>
+                                    <i class="dropdown icon"></i>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="ui vertical divider">
+                    and
+                </div>
+            </div>
+            <div class="ui segment">
+                <form class="ui form">
+                    <div class="inline field">
+                        <label for="old_purchase_date">Old Machine Purchase Date:</label>
+                        <div class="ui calendar" data-date="2020-01-01">
+                            <div class="ui input left icon">
+                                <i class="calendar icon"></i>
+                                <input type="text" id="old_purchase_date">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="inline field">
+                        <label for="new_tdp">Years you normally use a server:</label>
+                        <slider></slider>
+                        <input type="number" id="model_years" value="4">
+                    </div>
+                </form>
+            </div>
+            <div id="result">
+                <h2>Accumulated Emissions Over the Years</h2>
+                <div class="ui two column very relaxed stackable grid">
+                    <div class="column">
+                        <div id="chart_line" style="width: 600px;height:400px;"></div>
+                    </div>
+                    <div class="left aligned column">
+                        <div id="chart_bar" style="width: 600px;height:400px;"></div>
+                    </div>
+                </div>
+
+                <h2>The data in kg CO2e</h2>
+                <table id="emissionsTable" class="ui celled table">
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Emissions Old Machine</th>
+                            <th>Accumulated Emissions Old Machine</th>
+                            <th>Emissions New Machine</th>
+                            <th>Accumulated Emissions New Machine</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <script src="/static/grid.js"></script>
+        <script src="/static/code.js"></script>
+    </body>
+</html>
