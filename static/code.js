@@ -8,12 +8,12 @@ function capitalizeFirstChar(str) {
 }
 
 
-function drawChar(old_data, new_data, type='line'){
 
-    // There must be an easier way to do this but for now it works. No idea why I can't just put in a data series. But I can't get it to render properly
-
+function drawChar(old_data, new_data, verticalLineYear=0) {
+    // Combine all years from both datasets and sort them
     const allYears = Array.from(new Set([...old_data.map(item => item.year), ...new_data.map(item => item.year)])).sort();
 
+    // Create a map of emissions by year for both datasets
     const emissionsMap1 = old_data.reduce((acc, item) => {
         acc[item.year] = item.accumulatedEmissions;
         return acc;
@@ -24,15 +24,18 @@ function drawChar(old_data, new_data, type='line'){
         return acc;
     }, {});
 
+    // Create arrays of emissions values for the chart
     const emissions1 = allYears.map(year => emissionsMap1[year] || undefined);
     const emissions2 = allYears.map(year => emissionsMap2[year] || undefined);
 
-    var myChart = echarts.init(document.getElementById('chart_'+type));
+    console.log(allYears)
 
-    var option = {
-        title: {
-            text: capitalizeFirstChar(type+ " Chart")
-        },
+    // Initialize the chart
+    var myChart = echarts.init(document.getElementById('chart_line'));
+
+    // Create the chart options
+
+    option = {
         tooltip: {
             trigger: 'axis'
         },
@@ -41,24 +44,46 @@ function drawChar(old_data, new_data, type='line'){
             data: allYears
         },
         yAxis: {
-            type: 'value'
+            type: 'value',
+            name: 'CO2eq'
+
         },
         series: [
             {
+                data: emissions1,
                 name: 'Old Machine',
-                type: type,
-                data: emissions1
+                type: 'line',
+                markLine: {
+                    symbol: 'none',
+                    data: [
+                        {
+                            name: 'Break even line',
+                            xAxis: ''+verticalLineYear,
+                            label: {
+                                formatter: 'Break even',
+                                position: 'end',
+                                align: 'start'
+                            },
+                            lineStyle: {
+                                color: 'red',
+                            }
+
+                        }
+                    ]
+                }
             },
             {
+                data: emissions2,
+                type: 'line',
                 name: 'New Machine',
-                type: type,
-                data: emissions2
             }
         ]
     };
-    myChart.setOption(option);
-}
 
+    myChart.setOption(option);
+
+
+}
 
 
 function drawTable(old_data, old_accum, new_data, new_accum){
@@ -102,6 +127,7 @@ function drawTable(old_data, old_accum, new_data, new_accum){
     const combinedDataArray = Object.values(combinedData).sort((a, b) => a.year - b.year);
 
     const tbody = document.querySelector('#emissionsTable tbody');
+    tbody.innerHTML = '';
     combinedDataArray.forEach(item => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -162,6 +188,29 @@ function accumulateEmissions(data, intialEmissions=0) {
     });
 }
 
+function findYear(old_accum, new_accum){
+    let exceedingYear = 0;
+
+    for (let i = 0; i < new_accum.length; i++) {
+        const secondItem = new_accum[i];
+        const firstItem = old_accum.find(item => item.year === secondItem.year);
+
+        if (firstItem && secondItem.accumulatedEmissions < firstItem.accumulatedEmissions) {
+            exceedingYear = secondItem.year;
+            break;
+        }
+    }
+
+    return exceedingYear;
+}
+
+function updateText(year){
+    if (year){
+        $('#text_field').text('You will need to use the new machine till '+ year + ' for it to be more carbon efficient than just continue using the old machine');
+    }else{
+        $('#text_field').text('There is no break even point, so replacing the machine makes no sense from a CO2eq perspective');
+    }
+}
 
 function doCalculation(){
 
@@ -192,8 +241,13 @@ function doCalculation(){
 
     const new_accum = accumulateEmissions(new_data, sumFirstYears);
 
-    drawChar(old_accum, new_accum, 'line');
-    drawChar(old_accum, new_accum, 'bar');
+    const year_break_even = findYear(old_accum, new_accum);
+
+    updateText(year_break_even);
+
+    drawChar(old_accum, new_accum,  year_break_even);
+
+
 
     drawTable(old_data, old_accum, new_data, new_accum);
 

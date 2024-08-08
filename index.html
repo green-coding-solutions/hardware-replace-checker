@@ -71,7 +71,7 @@
                             </div>
                             <div class="field">
                                 <label for="old_tdp">
-                                    Thermal Design Power or Total Power:
+                                    Thermal Design Power or Total Power (Watt):
                                     <i class="info circle icon thermal_modal_click"></i>
                                 </label>
                                 <input type="number" id="old_tdp" value="400">
@@ -120,7 +120,7 @@
                             </div>
                             <div class="field">
                                 <label for="new_tdp">
-                                    Thermal Design Power or Total Power:
+                                    Thermal Design Power or Total Power (Watt):
                                     <i class="info circle icon thermal_modal_click"></i>
                                 </label>
                                 <input type="number" id="new_tdp" value="200">
@@ -169,7 +169,8 @@
                         <div id="chart_line" style="width: 600px;height:400px;"></div>
                     </div>
                     <div class="left aligned column">
-                        <div id="chart_bar" style="width: 600px;height:400px;"></div>
+                        <div id="text_field" class="ui segment"></div>
+                        <div class="ui segment"><b>Why does the new machine not start at 0 CO2eq?</b><br>Because we calculate the total emissions over time. If you would replace the old machine the emissions have still happened so we need to add them to the sum. </div>
                     </div>
                 </div>
 
