@@ -82,7 +82,9 @@ function drawChar(old_data, new_data, verticalLineYear=0) {
 
     myChart.setOption(option);
 
-
+    $(window).on('resize', () =>  {
+        myChart.resize();
+    });
 }
 
 
