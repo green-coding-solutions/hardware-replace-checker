@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "echarts": "^5.5.1",
-    "fomantic-ui": "^2.9.3",
-    "jquery": "^3.7.1"
-  }
-}
